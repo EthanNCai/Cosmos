@@ -103,10 +103,14 @@ def main(
     # Create the dataset and sample a single item from it.
     dataset = ActionControlDataset(subfolder="autoregressive", split=dataset_split.value, shuffle=False)
     sample = dataset[index]
+    print(f"{torch.tensor([BOV_TOKEN]).shape=}")
+    print(f"{sample['current_frame'].shape=}")
+    print(f"{sample['current_frame'].flatten().shape}")
     input_frame = torch.cat([torch.tensor([BOV_TOKEN]), sample["current_frame"].flatten()])
     prompts: list[list[int]] = [input_frame.tolist()]
+    print(f"{sample["action"].shape=}")
     actions = sample["action"].unsqueeze(0).cuda()  # shape([1, 7]), dtype=torch.bfloat16
-
+    print(f"{actions.shape=}")
     # Generate the next frame by passing in the current frame and the action to take and
     # subsequently generating prod(LATENT_SHAPE) tokens. Since we're only using a batch size of 1
     # here, we take the first item.
@@ -120,7 +124,7 @@ def main(
             temperature=temperature,
         ),
     )[0]
-
+    
     # Reshape the generated tokens to the correct shape for an output frame.
     predicted_frame = results.generated_tokens.reshape(1, 30, 40).detach().cpu()
 
